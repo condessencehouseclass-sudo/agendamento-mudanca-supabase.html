@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agendamento de Mudança — Estilo One UI</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter (estética próxima à fonte SamsungOne / One UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            oneui: {
+              blue: '#0381FE',
+              blueDark: '#3E9BFF',
+              lightBg: '#F2F4F8',
+              darkBg: '#0B0D12',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Variáveis e Estética Samsung One UI + Glassmorphism */
+    :root {
+      --bg-base: #F2F4F8;
+      --text-primary: #111318;
+      --text-secondary: #5C6475;
+      --glass-bg: rgba(255, 255, 255, 0.68);
+      --glass-bg-strong: rgba(255, 255, 255, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.65);
+      --glass-shadow: 0 12px 32px -6px rgba(17, 24, 39, 0.06), 0 4px 12px -2px rgba(17, 24, 39, 0.03);
+      --pill-bg: rgba(255, 255, 255, 0.72);
+      --pill-hover: rgba(3, 129, 254, 0.1);
+      --row-hover: rgba(3, 129, 254, 0.05);
+      --divider: rgba(15, 23, 42, 0.07);
+    }
+
+    html.dark {
+      --bg-base: #0B0D12;
+      --text-primary: #F4F6FA;
+      --text-secondary: #98A2B3;
+      --glass-bg: rgba(24, 28, 38, 0.65);
+      --glass-bg-strong: rgba(26, 30, 41, 0.86);
+      --glass-border: rgba(255, 255, 255, 0.11);
+      --glass-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.45), 0 4px 14px -2px rgba(0, 0, 0, 0.3);
+      --pill-bg: rgba(34, 39, 52, 0.75);
+      --pill-hover: rgba(62, 155, 255, 0.18);
+      --row-hover: rgba(62, 155, 255, 0.08);
+      --divider: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+      transition: background-color 0.35s ease, color 0.35s ease;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Orbes de fundo suaves para realçar a transparência (Glassmorphism) */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .ambient-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(95px);
+      opacity: 0.55;
+      transition: opacity 0.4s ease, transform 12s ease-in-out;
+    }
+
+    html.dark .ambient-orb {
+      opacity: 0.32;
+    }
+
+    .orb-1 {
+      width: 520px;
+      height: 520px;
+      top: -120px;
+      left: -100px;
+      background: radial-gradient(circle, rgba(3, 129, 254, 0.42), rgba(114, 180, 255, 0.05));
+    }
+
+    .orb-2 {
+      width: 480px;
+      height: 480px;
+      top: 22%;
+      right: -120px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.28), rgba(3, 129, 254, 0.04));
+    }
+
+    .orb-3 {
+      width: 540px;
+      height: 540px;
+      bottom: -160px;
+      left: 28%;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.24), rgba(3, 129, 254, 0.03));
+    }
+
+    /* Cards Estilo One UI (26px border-radius + glassmorphism) */
+    .oneui-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      border: 1px solid var(--glass-border);
+      border-radius: 26px;
+      box-shadow: var(--glass-shadow);
+      transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease, background-color 0.3s ease;
+    }
+
+    .oneui-card-interactive:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Modais translúcidos One UI (28px border-radius + blur 24px) */
+    .oneui-modal-backdrop {
+      background: rgba(10, 14, 24, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: opacity 0.25s ease;
+    }
+
+    .oneui-modal-panel {
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.28);
+      animation: oneuiModalIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes oneuiModalIn {
+      from {
+        opacity: 0;
+        transform: translateY(22px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Botões e Chips Pílula One UI */
+    .oneui-pill {
+      border-radius: 9999px;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      user-select: none;
+    }
+
+    .oneui-pill:active {
+      transform: scale(0.96);
+    }
+
+    /* Inputs Estilo One UI */
+    .oneui-input {
+      background: var(--pill-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      color: var(--text-primary);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    .oneui-input:focus {
+      outline: none;
+      border-color: #0381FE;
+      box-shadow: 0 0 0 3px rgba(3, 129, 254, 0.18);
+    }
+
+    /* Scrollbar discreta */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.35);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.55);
+    }
+
+    /* Tabela limpa estilo planilha */
+    .oneui-table th {
+      font-weight: 700;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .oneui-table td {
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .oneui-table tbody tr {
+      transition: background-color 0.18s ease;
+    }
+
+    .oneui-table tbody tr:hover {
+      background-color: var(--row-hover);
+    }
+
+    .oneui-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Toast estilo One UI */
+    .oneui-toast {
+      background: rgba(24, 28, 38, 0.9);
+      color: #FFFFFF;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 9999px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+      animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    html.dark .oneui-toast {
+      background: rgba(245, 247, 252, 0.92);
+      color: #0F172A;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    @keyframes toastSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-[#0381FE] selection:text-white">
+
+  <!-- Camada de Fundo Dinâmico Suave -->
+  <div class="ambient-canvas" aria-hidden="true">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+  </div>
+
+  <!-- Container Principal -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <!-- ÁREA DE VISUALIZAÇÃO EXPANSÍVEL ONE UI (Viewing Area Header) -->
+    <header class="pt-7 pb-6 sm:pt-10 sm:pb-8">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide bg-[#0381FE]/12 text-[#0381FE] dark:bg-[#3E9BFF]/18 dark:text-[#66B2FF] mb-3">
+            <span class="w-2 h-2 rounded-full bg-[#0381FE] animate-pulse"></span>
+            Planilha Histórica do Condomínio • 2022–2026
+          </div>
+          <h1 class="text-3xl sm:text-4xl lg:text-[42px] font-extrabold tracking-tight leading-tight">
+            Agendamento de Mudança
+          </h1>
+          <p id="headerSubtitle" class="mt-1.5 text-sm sm:text-base text-[var(--text-secondary)] font-medium">
+            Carregando histórico completo de movimentações...
+          </p>
+        </div>
+
+        <!-- Controles Superiores Rápidos (Tema Claro/Escuro + Restaurar) -->
+        <div class="flex items-center gap-2.5 self-start sm:self-end">
+          <button
+            type="button"
+            onclick="openResetModal()"
+            title="Restaurar os 56 registros originais da planilha"
+            class="oneui-pill px-4 py-2.5 text-xs sm:text-sm font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:bg-[var(--pill-hover)] flex items-center gap-2 shadow-sm"
+          >
+            <svg class="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span class="hidden md:inline">Restaurar Original</span>
+          </button>
+
+          <button
+            id="themeToggleBtn"
+            type="button"
+            onclick="toggleTheme()"
+            aria-label="Alternar tema claro ou escuro"
+            class="oneui-pill p-2.5 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:bg-[var(--pill-hover)] flex items-center gap-2 shadow-sm"
+          >
+            <!-- Ícone Sol (visível no modo escuro) -->
+            <svg id="sunIcon" class="w-4 h-4 text-amber-400 hidden" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+            </svg>
+            <!-- Ícone Lua (visível no modo claro) -->
+            <svg id="moonIcon" class="w-4 h-4 text-[#0381FE]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+            </svg>
+            <span id="themeLabel" class="hidden sm:inline">Modo Escuro</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 1. CARD DE NAVEGAÇÃO DE MESES E GERAÇÃO DO PRÓXIMO MÊS -->
+    <section class="oneui-card p-5 sm:p-6 mb-6" aria-label="Navegação de Períodos">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+
+        <!-- Indicador do Período Ativo -->
+        <div class="flex items-start sm:items-center gap-4">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#0381FE]/15 dark:bg-[#3E9BFF]/20 text-[#0381FE] dark:text-[#66B2FF] flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="4" ry="4"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Período Visualizado</span>
+              <span id="periodBadgeCount" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0381FE] text-white">
+                0 registros
+              </span>
+            </div>
+            <h2 id="activeMonthTitle" class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-0.5">
+              Outubro 2026
+            </h2>
+            <p id="periodComparisonText" class="text-xs sm:text-sm text-[var(--text-secondary)] mt-0.5">
+              Exibindo movimentações do mês selecionado vs. 56 registros totais
+            </p>
+          </div>
+        </div>
+
+        <!-- Controles de Navegação + Gerar Próximo Mês -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- Botão Mês Anterior -->
+          <button
+            id="prevMonthBtn"
+            type="button"
+            onclick="navigateMonth(-1)"
+            class="oneui-pill px-4 py-2.5 text-sm font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:bg-[var(--pill-hover)] flex items-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Mês Anterior</span>
+          </button>
+
+          <!-- Seletor Dropdown Rápido de Ano/Mês ou Histórico Completo -->
+          <div class="relative">
+            <select
+              id="monthSelectorDropdown"
+              onchange="handleDropdownChange(this.value)"
+              aria-label="Selecionar mês ou histórico completo"
+              class="oneui-pill appearance-none pl-4 pr-9 py-2.5 text-sm font-bold bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:border-[#0381FE] focus:outline-none focus:ring-2 focus:ring-[#0381FE]/30 cursor-pointer"
+            >
+              <!-- Preenchido via JS -->
+            </select>
+            <svg class="w-4 h-4 text-[var(--text-secondary)] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+
+          <!-- Botão Próximo Mês -->
+          <button
+            id="nextMonthBtn"
+            type="button"
+            onclick="navigateMonth(1)"
+            class="oneui-pill px-4 py-2.5 text-sm font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:bg-[var(--pill-hover)] flex items-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <span>Próximo Mês</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <!-- Botão Destaque: + Gerar Próximo Mês -->
+          <button
+            type="button"
+            onclick="generateNextMonth()"
+            class="oneui-pill px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-[#0381FE] to-[#2B95FF] hover:brightness-110 shadow-lg shadow-[#0381FE]/25 flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Gerar Próximo Mês</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Atalho Rápido entre Visão Mensal e Todos os Meses -->
+      <div class="mt-4 pt-4 border-t border-[var(--divider)] flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2 text-[var(--text-secondary)]">
+          <span>Atalho rápido:</span>
+          <button
+            type="button"
+            onclick="selectAllMonths()"
+            id="btnViewAllShortcut"
+            class="oneui-pill px-3 py-1 font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:text-[#0381FE]"
+          >
+            Ver Todos os Meses (2022–2026)
+          </button>
+          <button
+            type="button"
+            onclick="selectLatestMonth()"
+            id="btnViewLatestShortcut"
+            class="oneui-pill px-3 py-1 font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:text-[#0381FE]"
+          >
+            Ir para Mês Mais Recente
+          </button>
+        </div>
+        <div id="generatedMonthsTag" class="text-[var(--text-secondary)] font-medium">
+          <!-- Atualizado dinamicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. CARDS DE RESUMO (KPIs) TRANSLÚCIDOS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" aria-label="Indicadores de Mudanças">
+      <!-- KPI 1: Total de Mudanças -->
+      <div class="oneui-card oneui-card-interactive p-5 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Total de Mudanças</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <span id="kpiTotalPeriod" class="text-3xl font-extrabold tracking-tight">0</span>
+            <span id="kpiTotalAll" class="text-xs font-semibold text-[var(--text-secondary)]">de 56 geral</span>
+          </div>
+          <p class="text-xs text-[var(--text-secondary)] mt-1">No filtro atual</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-[#0381FE]/15 text-[#0381FE] dark:text-[#66B2FF] flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- KPI 2: Chegando -->
+      <div class="oneui-card oneui-card-interactive p-5 flex items-center justify-between">
+        <div>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Chegando
+          </span>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span id="kpiChegandoPeriod" class="text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">0</span>
+            <span id="kpiChegandoAll" class="text-xs font-semibold text-[var(--text-secondary)]">(0 geral)</span>
+          </div>
+          <p class="text-xs text-[var(--text-secondary)] mt-1">Novos moradores</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- KPI 3: Saindo -->
+      <div class="oneui-card oneui-card-interactive p-5 flex items-center justify-between">
+        <div>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-500/15 text-orange-700 dark:text-orange-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+            Saindo
+          </span>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span id="kpiSaindoPeriod" class="text-3xl font-extrabold tracking-tight text-orange-600 dark:text-orange-400">0</span>
+            <span id="kpiSaindoAll" class="text-xs font-semibold text-[var(--text-secondary)]">(0 geral)</span>
+          </div>
+          <p class="text-xs text-[var(--text-secondary)] mt-1">Desocupações</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-orange-500/15 text-orange-600 dark:text-orange-400 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- KPI 4: Mudança de AP -->
+      <div class="oneui-card oneui-card-interactive p-5 flex items-center justify-between">
+        <div>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+            Mudança de AP
+          </span>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span id="kpiInternaPeriod" class="text-3xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">0</span>
+            <span id="kpiInternaAll" class="text-xs font-semibold text-[var(--text-secondary)]">(0 geral)</span>
+          </div>
+          <p class="text-xs text-[var(--text-secondary)] mt-1">Transferência interna</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. BARRA DE PESQUISA, FILTROS E AÇÕES -->
+    <section class="oneui-card p-5 mb-6" aria-label="Pesquisa e Filtros">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+
+        <!-- Campo de Busca -->
+        <div class="relative flex-1 max-w-xl">
+          <svg class="w-5 h-5 text-[var(--text-secondary)] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path stroke-linecap="round" d="M21 21l-4.35-4.35"></path>
+          </svg>
+          <input
+            id="searchInput"
+            type="text"
+            oninput="handleSearch(this.value)"
+            placeholder="Buscar por morador, inquilino ou apartamento (ex: 402, Widson)..."
+            class="oneui-input w-full pl-11 pr-10 py-3 text-sm font-medium placeholder:text-[var(--text-secondary)]"
+          />
+          <button
+            id="clearSearchBtn"
+            type="button"
+            onclick="clearSearch()"
+            aria-label="Limpar busca"
+            class="hidden absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Botões Principais de Ação (+ Novo Agendamento & Exportar CSV) -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onclick="exportToCSV()"
+            class="oneui-pill px-4 py-3 text-sm font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:bg-[var(--pill-hover)] flex items-center gap-2"
+          >
+            <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Exportar CSV / Excel</span>
+          </button>
+
+          <button
+            type="button"
+            onclick="openFormModal()"
+            class="oneui-pill px-5 py-3 text-sm font-bold text-white bg-[#0381FE] hover:bg-[#0270DE] shadow-md shadow-[#0381FE]/25 flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Novo Agendamento</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chips de Filtro One UI (Situação & Status) -->
+      <div class="mt-4 pt-4 border-t border-[var(--divider)] flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <!-- Filtro por Situação -->
+        <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filtrar por Situação">
+          <span class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mr-1">Situação:</span>
+          <button type="button" data-situacao="Todos" onclick="setSituacaoFilter('Todos')" class="situacao-chip oneui-pill px-3.5 py-1.5 text-xs font-bold bg-[#0381FE] text-white">
+            Todos
+          </button>
+          <button type="button" data-situacao="Chegando" onclick="setSituacaoFilter('Chegando')" class="situacao-chip oneui-pill px-3.5 py-1.5 text-xs font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)]">
+            Chegando
+          </button>
+          <button type="button" data-situacao="Saindo" onclick="setSituacaoFilter('Saindo')" class="situacao-chip oneui-pill px-3.5 py-1.5 text-xs font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)]">
+            Saindo
+          </button>
+          <button type="button" data-situacao="Mudança de AP" onclick="setSituacaoFilter('Mudança de AP')" class="situacao-chip oneui-pill px-3.5 py-1.5 text-xs font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)]">
+            Mudança de AP
+          </button>
+        </div>
+
+        <!-- Filtro por Status -->
+        <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filtrar por Status">
+          <span class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mr-1">Status:</span>
+          <button type="button" data-status="Todos" onclick="setStatusFilter('Todos')" class="status-chip oneui-pill px-3.5 py-1.5 text-xs font-bold bg-[#0381FE] text-white">
+            Todos
+          </button>
+          <button type="button" data-status="Concluída" onclick="setStatusFilter('Concluída')" class="status-chip oneui-pill px-3.5 py-1.5 text-xs font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)]">
+            Concluída
+          </button>
+          <button type="button" data-status="Agendada" onclick="setStatusFilter('Agendada')" class="status-chip oneui-pill px-3.5 py-1.5 text-xs font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)]">
+            Agendada
+          </button>
+          <button type="button" data-status="Pendente" onclick="setStatusFilter('Pendente')" class="status-chip oneui-pill px-3.5 py-1.5 text-xs font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)]">
+            Pendente
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. TABELA / PLANILHA ONE UI (Desktop) & CARDS EMPILHADOS (Mobile) -->
+    <section class="oneui-card overflow-hidden" aria-label="Planilha de Agendamentos">
+      <!-- Cabeçalho Interno da Planilha -->
+      <div class="px-5 sm:px-6 py-4 border-b border-[var(--divider)] flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <span class="font-bold text-base sm:text-lg">Registros da Planilha</span>
+          <span id="filteredCountBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0381FE]/15 text-[#0381FE] dark:text-[#66B2FF]">
+            0 itens
+          </span>
+        </div>
+        <div class="text-xs text-[var(--text-secondary)] flex items-center gap-1.5">
+          <span>Clique no status para alternar rapidamente</span>
+        </div>
+      </div>
+
+      <!-- Visualização Desktop (Tabela Estilo Planilha) -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="oneui-table w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th class="py-3.5 pl-6 pr-3 w-14">#</th>
+              <th class="py-3.5 px-4">Morador ou Inquilino</th>
+              <th class="py-3.5 px-4">Apartamento</th>
+              <th class="py-3.5 px-4">Status</th>
+              <th class="py-3.5 px-4">Situação</th>
+              <th class="py-3.5 px-4">Data</th>
+              <th class="py-3.5 pl-4 pr-6 text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="desktopTableBody" class="text-sm font-medium">
+            <!-- Renderizado via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Visualização Mobile (Cards Empilhados Estilo One UI) -->
+      <div id="mobileCardsList" class="md:hidden divide-y divide-[var(--divider)]">
+        <!-- Renderizado via JS -->
+      </div>
+
+      <!-- Estado Vazio (Quando um mês recém-gerado ou busca não tem registros) -->
+      <div id="emptyStateContainer" class="hidden py-14 px-6 text-center">
+        <div class="w-16 h-16 mx-auto rounded-3xl bg-[#0381FE]/12 text-[#0381FE] flex items-center justify-center mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="4"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </div>
+        <h3 id="emptyStateTitle" class="text-lg font-bold">Nenhum agendamento neste período</h3>
+        <p id="emptyStateDesc" class="text-sm text-[var(--text-secondary)] max-w-md mx-auto mt-1.5">
+          Esta folha mensal está pronta para receber novos agendamentos de mudança do condomínio.
+        </p>
+        <div class="mt-5 flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onclick="openFormModal(null, true)"
+            class="oneui-pill px-5 py-2.5 text-sm font-bold text-white bg-[#0381FE] hover:bg-[#0270DE] shadow-md shadow-[#0381FE]/25"
+          >
+            + Agendar Mudança Neste Mês
+          </button>
+          <button
+            type="button"
+            onclick="resetFiltersOnly()"
+            class="oneui-pill px-4 py-2.5 text-sm font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)]"
+          >
+            Limpar Filtros
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: ADICIONAR / EDITAR AGENDAMENTO (Estilo One UI Translúcido)   -->
+  <!-- ===================================================================== -->
+  <div id="formModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 oneui-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="formModalTitle">
+    <div class="oneui-modal-panel w-full max-w-lg p-6 sm:p-7">
+      <div class="flex items-center justify-between pb-4 border-b border-[var(--divider)]">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-[#0381FE]">Planilha do Condomínio</span>
+          <h3 id="formModalTitle" class="text-xl sm:text-2xl font-extrabold mt-0.5">Novo Agendamento</h3>
+        </div>
+        <button type="button" onclick="closeFormModal()" aria-label="Fechar janela" class="oneui-pill p-2 bg-[var(--pill-bg)] hover:bg-black/10 dark:hover:bg-white/10">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="agendamentoForm" onsubmit="saveAgendamento(event)" class="mt-5 space-y-4">
+        <input type="hidden" id="recordId" />
+
+        <!-- Morador ou Inquilino -->
+        <div>
+          <label for="moradorInput" class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">
+            Morador ou Inquilino *
+          </label>
+          <input
+            id="moradorInput"
+            type="text"
+            required
+            placeholder="Ex: Maria Carolina ou Roberto"
+            class="oneui-input w-full px-4 py-3 text-sm font-semibold"
+          />
+        </div>
+
+        <!-- Apartamento e Data -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="aptoInput" class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">
+              Apartamento *
+            </label>
+            <input
+              id="aptoInput"
+              type="text"
+              required
+              placeholder="Ex: Apto 403"
+              class="oneui-input w-full px-4 py-3 text-sm font-semibold"
+            />
+          </div>
+
+          <div>
+            <label for="dataInput" class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">
+              Data da Mudança *
+            </label>
+            <input
+              id="dataInput"
+              type="date"
+              required
+              class="oneui-input w-full px-4 py-3 text-sm font-semibold"
+            />
+          </div>
+        </div>
+
+        <!-- Situação e Status -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="situacaoInput" class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">
+              Situação *
+            </label>
+            <select id="situacaoInput" class="oneui-input w-full px-4 py-3 text-sm font-semibold cursor-pointer">
+              <option value="Chegando">Chegando</option>
+              <option value="Saindo">Saindo</option>
+              <option value="Mudança de AP">Mudança de AP</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="statusInput" class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">
+              Status *
+            </label>
+            <select id="statusInput" class="oneui-input w-full px-4 py-3 text-sm font-semibold cursor-pointer">
+              <option value="Agendada">Agendada</option>
+              <option value="Concluída">Concluída</option>
+              <option value="Pendente">Pendente</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Botões de Ação do Modal -->
+        <div class="pt-4 border-t border-[var(--divider)] flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onclick="closeFormModal()"
+            class="oneui-pill px-5 py-2.5 text-sm font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="oneui-pill px-6 py-2.5 text-sm font-bold text-white bg-[#0381FE] hover:bg-[#0270DE] shadow-lg shadow-[#0381FE]/25"
+          >
+            Salvar na Planilha
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: CONFIRMAR EXCLUSÃO (Estilo One UI Translúcido)               -->
+  <!-- ===================================================================== -->
+  <div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 oneui-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="oneui-modal-panel w-full max-w-md p-6 sm:p-7 text-center">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-4">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </div>
+      <h3 id="deleteModalTitle" class="text-xl font-extrabold">Excluir Agendamento?</h3>
+      <p id="deleteModalMessage" class="text-sm text-[var(--text-secondary)] mt-2">
+        Tem certeza que deseja remover este registro da planilha? Esta ação não pode ser desfeita.
+      </p>
+      <div class="mt-6 grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onclick="closeDeleteModal()"
+          class="oneui-pill py-3 text-sm font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:bg-black/5 dark:hover:bg-white/10"
+        >
+          Manter
+        </button>
+        <button
+          type="button"
+          onclick="confirmDelete()"
+          class="oneui-pill py-3 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-lg shadow-rose-600/25"
+        >
+          Sim, Excluir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 3: CONFIRMAR RESTAURAÇÃO DOS 56 DADOS ORIGINAIS                 -->
+  <!-- ===================================================================== -->
+  <div id="resetModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 oneui-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle">
+    <div class="oneui-modal-panel w-full max-w-md p-6 sm:p-7 text-center">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-[#0381FE]/15 text-[#0381FE] flex items-center justify-center mb-4">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </div>
+      <h3 id="resetModalTitle" class="text-xl font-extrabold">Restaurar Planilha Original?</h3>
+      <p class="text-sm text-[var(--text-secondary)] mt-2">
+        Isso restaurará exatamente os <strong>56 registros históricos originais (2022–2026)</strong> e removerá todas as alterações feitas.
+      </p>
+      <div class="mt-6 grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onclick="closeResetModal()"
+          class="oneui-pill py-3 text-sm font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border)]"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          onclick="confirmResetOriginalData()"
+          class="oneui-pill py-3 text-sm font-bold text-white bg-[#0381FE] hover:bg-[#0270DE] shadow-lg shadow-[#0381FE]/25"
+        >
+          Restaurar Agora
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container de Notificação Toast Estilo One UI -->
+  <div id="toastContainer" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none px-4 w-full max-w-md"></div>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+
+  <script>
+    // =========================================================================
+    // 1. DADOS HISTÓRICOS ORIGINAIS (EXATAMENTE OS 56 REGISTROS DE 2022 A 2026)
+    // =========================================================================
+    const INITIAL_RECORDS = [
+      // 2022 (5 registros)
+      { id: 1, morador: "Roberto", apto: "Apto 403", status: "Concluída", situacao: "Saindo", data: "2022-10-13" },
+      { id: 2, morador: "Widson", apto: "Apto 402", status: "Concluída", situacao: "Saindo", data: "2022-11-25" },
+      { id: 3, morador: "Widson", apto: "Apto 402", status: "Concluída", situacao: "Saindo", data: "2022-12-12" },
+      { id: 4, morador: "Widson", apto: "Apto 402", status: "Concluída", situacao: "Saindo", data: "2022-12-13" },
+      { id: 5, morador: "Iara Márcia", apto: "Apto 402", status: "Concluída", situacao: "Chegando", data: "2022-12-15" },
+
+      // 2023 (14 registros)
+      { id: 6, morador: "Maridelce Mayerhoffer", apto: "Apto 401", status: "Concluída", situacao: "Chegando", data: "2023-02-02" },
+      { id: 7, morador: "Anna Paula", apto: "Apto 504", status: "Concluída", situacao: "Chegando", data: "2023-03-21" },
+      { id: 8, morador: "Túlio Baita", apto: "Apto 1502", status: "Concluída", situacao: "Chegando", data: "2023-06-23" },
+      { id: 9, morador: "Thiago", apto: "Apto 904", status: "Concluída", situacao: "Saindo", data: "2023-06-30" },
+      { id: 10, morador: "Guilherme e Thereza", apto: "Apto 203", status: "Concluída", situacao: "Saindo", data: "2023-07-11" },
+      { id: 11, morador: "Guilherme e Thereza", apto: "Apto 203", status: "Concluída", situacao: "Saindo", data: "2023-07-25" },
+      { id: 12, morador: "Luiz Fellipe", apto: "Apto 904", status: "Concluída", situacao: "Chegando", data: "2023-08-01" },
+      { id: 13, morador: "Felipe Moté", apto: "Apto 1301", status: "Concluída", situacao: "Saindo", data: "2023-08-15" },
+      { id: 14, morador: "Raquel e Peterson", apto: "Apto 203", status: "Concluída", situacao: "Chegando", data: "2023-09-02" },
+      { id: 15, morador: "Ronaldo e Suzana", apto: "Apto 704", status: "Concluída", situacao: "Chegando", data: "2023-09-27" },
+      { id: 16, morador: "Kelly Cristina", apto: "Apto 403", status: "Concluída", situacao: "Saindo", data: "2023-10-09" },
+      { id: 17, morador: "Kamila Medeiros", apto: "Apto 403", status: "Concluída", situacao: "Chegando", data: "2023-10-20" },
+      { id: 18, morador: "Simone Ribeiro", apto: "Apto 1404", status: "Concluída", situacao: "Saindo", data: "2023-12-11" },
+      { id: 19, morador: "Frederico Margem", apto: "Apto 204", status: "Concluída", situacao: "Chegando", data: "2023-12-22" },
+
+      // 2024 (15 registros)
+      { id: 20, morador: "Nathalia Ortiz", apto: "Apto 303", status: "Concluída", situacao: "Saindo", data: "2024-01-26" },
+      { id: 21, morador: "Iara Márcia", apto: "Apto 402", status: "Concluída", situacao: "Saindo", data: "2024-02-05" },
+      { id: 22, morador: "Leonardo Prata", apto: "Apto 303", status: "Concluída", situacao: "Chegando", data: "2024-04-24" },
+      { id: 23, morador: "Didier e Érica", apto: "Apto 201", status: "Concluída", situacao: "Saindo", data: "2024-05-08" },
+      { id: 24, morador: "Kamila Medeiros", apto: "Apto 403", status: "Concluída", situacao: "Saindo", data: "2024-07-16" },
+      { id: 25, morador: "Arilsa Andrade", apto: "Apto 202", status: "Concluída", situacao: "Saindo", data: "2024-07-29" },
+      { id: 26, morador: "Mércia Mussi", apto: "Apto 202", status: "Concluída", situacao: "Chegando", data: "2024-07-30" },
+      { id: 27, morador: "Maria Carolina", apto: "Apto 403", status: "Concluída", situacao: "Chegando", data: "2024-08-08" },
+      { id: 28, morador: "Iara Márcia", apto: "Apto 402", status: "Concluída", situacao: "Saindo", data: "2024-09-05" },
+      { id: 29, morador: "Adelino e Daniela", apto: "Apto 804", status: "Concluída", situacao: "Saindo", data: "2024-09-14" },
+      { id: 30, morador: "Leandro Ribeiro", apto: "Apto 402", status: "Concluída", situacao: "Saindo", data: "2024-10-09" },
+      { id: 31, morador: "Luiza e Ewerton", apto: "Apto 804", status: "Concluída", situacao: "Chegando", data: "2024-12-21" },
+      { id: 32, morador: "Carolina Sepúlveda", apto: "Apto 603", status: "Concluída", situacao: "Saindo", data: "2024-12-27" },
+      { id: 33, morador: "Ronaldo e Suzana", apto: "Apto 704", status: "Concluída", situacao: "Saindo", data: "2024-12-30" },
+      { id: 34, morador: "Ronaldo e Suzana", apto: "Apto 704", status: "Concluída", situacao: "Saindo", data: "2024-12-31" },
+
+      // 2025 (16 registros)
+      { id: 35, morador: "Vanessa Cristina", apto: "Apto 1101", status: "Concluída", situacao: "Saindo", data: "2025-01-06" },
+      { id: 36, morador: "Vanessa Cristina", apto: "Apto 1101", status: "Concluída", situacao: "Saindo", data: "2025-01-07" },
+      { id: 37, morador: "Vanessa Cristina", apto: "Apto 1101", status: "Concluída", situacao: "Saindo", data: "2025-01-08" },
+      { id: 38, morador: "Guilherme Soares", apto: "Apto 1101", status: "Concluída", situacao: "Chegando", data: "2025-02-06" },
+      { id: 39, morador: "Ana Paula", apto: "Apto 603", status: "Concluída", situacao: "Chegando", data: "2025-06-20" },
+      { id: 40, morador: "Gabriel Monteiro", apto: "Apto 1303", status: "Concluída", situacao: "Saindo", data: "2025-07-04" },
+      { id: 41, morador: "Carolina Abreu", apto: "Apto 803", status: "Concluída", situacao: "Saindo", data: "2025-07-21" },
+      { id: 42, morador: "Daniel Pinheiro", apto: "Apto 704", status: "Concluída", situacao: "Chegando", data: "2025-08-08" },
+      { id: 43, morador: "Amaro e Andriele", apto: "Apto 803", status: "Concluída", situacao: "Chegando", data: "2025-09-19" },
+      { id: 44, morador: "Lorena Lima", apto: "Apto 903", status: "Concluída", situacao: "Chegando", data: "2025-10-03" },
+      { id: 45, morador: "Luiz Fellipe Lobo", apto: "Apto 904", status: "Concluída", situacao: "Saindo", data: "2025-10-11" },
+      { id: 46, morador: "Leandro Pessanha", apto: "Apto 201", status: "Concluída", situacao: "Chegando", data: "2025-11-08" },
+      { id: 47, morador: "Simone", apto: "Apto 1404", status: "Concluída", situacao: "Saindo", data: "2025-11-24" },
+      { id: 48, morador: "Simone", apto: "Apto 1404", status: "Concluída", situacao: "Saindo", data: "2025-11-28" },
+      { id: 49, morador: "Simone", apto: "Apto 1404", status: "Concluída", situacao: "Saindo", data: "2025-12-02" },
+      { id: 50, morador: "Eduardo Monteiro", apto: "Apto 904", status: "Concluída", situacao: "Chegando", data: "2025-12-22" },
+
+      // 2026 (6 registros)
+      { id: 51, morador: "Frederico Margem", apto: "Apto 204", status: "Concluída", situacao: "Saindo", data: "2026-04-02" },
+      { id: 52, morador: "Andrielle e Amaro", apto: "Apto 803", status: "Concluída", situacao: "Saindo", data: "2026-07-15" },
+      { id: 53, morador: "Geroge Dennes", apto: "Apto 803", status: "Concluída", situacao: "Mudança de AP", data: "2026-07-17" },
+      { id: 54, morador: "Tulio Baita", apto: "Apto 1502", status: "Concluída", situacao: "Saindo", data: "2026-08-28" },
+      { id: 55, morador: "Andre mauricio", apto: "Apto 204", status: "Concluída", situacao: "Chegando", data: "2026-09-23" },
+      { id: 56, morador: "Afonso", apto: "Apto 502", status: "Concluída", situacao: "Chegando", data: "2026-10-31" }
+    ];
+
+
+    const MONTH_NAMES_PT = [
+      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+
+    // =========================================================================
+    // 2. CONFIGURAÇÃO SUPABASE + CAMADA DE DADOS
+    // =========================================================================
+    // >>> COLE AQUI os dados do seu projeto (Supabase > Project Settings > API) <<<
+    const SUPABASE_URL = 'https://ehgzjfwleqqytwloarkd.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoZ3pqZndsZXFxeXR3bG9hcmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0MTY2MjcsImV4cCI6MjEwODk5MjYyN30.dY64SX6f0udLSr_3P79V45oA0r5d4fcumVzwi8xO67U';
+
+    const TABLE = 'mudancas';          // registros de mudança
+    const TABLE_MONTHS = 'mudancas_meses'; // meses vazios criados em "Gerar Próximo Mês"
+
+    const USE_SUPABASE = /^https:\/\/.+\.supabase\.(co|in)/.test(SUPABASE_URL)
+      && SUPABASE_ANON_KEY.length > 30 && !!window.supabase;
+    const sb = USE_SUPABASE ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    const THEME_KEY = 'agendamento_mudanca_tema';
+    const LOCAL_KEY = 'agendamento_mudanca_v1';
+
+    function cloneInitial() { return INITIAL_RECORDS.map(({ id, ...r }) => ({ ...r })); }
+
+    function check(error) { if (error) throw new Error(error.message || String(error)); }
+
+    // --- Implementação Supabase ---
+    const dbSupabase = {
+      async load() {
+        let records = [], from = 0;
+        for (;;) {
+          const { data, error } = await sb.from(TABLE).select('*').order('data').order('id').range(from, from + 999);
+          check(error);
+          records = records.concat(data);
+          if (data.length < 1000) break;
+          from += 1000;
+        }
+        const { data: m, error: e2 } = await sb.from(TABLE_MONTHS).select('mes');
+        check(e2);
+        return { records, months: m.map(x => x.mes) };
+      },
+      async insert(p) {
+        const { data, error } = await sb.from(TABLE).insert(p).select().single();
+        check(error); return data;
+      },
+      async update(id, p) {
+        const { error } = await sb.from(TABLE).update(p).eq('id', id);
+        check(error);
+      },
+      async remove(id) {
+        const { error } = await sb.from(TABLE).delete().eq('id', id);
+        check(error);
+      },
+      async addMonth(k) {
+        const { error } = await sb.from(TABLE_MONTHS).upsert({ mes: k });
+        check(error);
+      },
+      async reset() {
+        let r = await sb.from(TABLE).delete().gt('id', 0); check(r.error);
+        r = await sb.from(TABLE_MONTHS).delete().neq('mes', ''); check(r.error);
+        r = await sb.from(TABLE).insert(cloneInitial()).select(); check(r.error);
+        return r.data;
+      }
+    };
+
+    // --- Implementação local (usada enquanto a URL/KEY não forem preenchidas) ---
+    function readLocal() {
+      try {
+        const d = JSON.parse(localStorage.getItem(LOCAL_KEY));
+        if (d && Array.isArray(d.records)) return d;
+      } catch (e) {}
+      return { records: INITIAL_RECORDS.map(r => ({ ...r })), months: [] };
+    }
+    function writeLocal(d) { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(d)); } catch (e) {} }
+    const dbLocal = {
+      async load() { return readLocal(); },
+      async insert(p) {
+        const d = readLocal();
+        const row = { id: d.records.reduce((m, r) => Math.max(m, r.id), 0) + 1, ...p };
+        d.records.push(row); writeLocal(d); return row;
+      },
+      async update(id, p) {
+        const d = readLocal(); const r = d.records.find(x => x.id === id);
+        if (r) Object.assign(r, p); writeLocal(d);
+      },
+      async remove(id) { const d = readLocal(); d.records = d.records.filter(r => r.id !== id); writeLocal(d); },
+      async addMonth(k) { const d = readLocal(); if (!d.months.includes(k)) d.months.push(k); writeLocal(d); },
+      async reset() {
+        const d = { records: INITIAL_RECORDS.map(r => ({ ...r })), months: [] };
+        writeLocal(d); return d.records;
+      }
+    };
+
+    const db = USE_SUPABASE ? dbSupabase : dbLocal;
+
+    // =========================================================================
+    // 2.1 ESTADO
+    // =========================================================================
+    const state = {
+      records: [],
+      generatedMonths: [],   // meses vazios criados por "Gerar Próximo Mês"
+      view: 'all',           // 'all' ou 'YYYY-MM'
+      search: '',
+      situacao: 'Todos',
+      status: 'Todos',
+      deleteId: null,
+      busy: false
+    };
+
+    function dbError(e) {
+      console.error(e);
+      toast('Erro: ' + (e.message || 'falha ao falar com o banco de dados'));
+    }
+
+    // =========================================================================
+    // 3. UTILITÁRIOS
+    // =========================================================================
+    const $ = (id) => document.getElementById(id);
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function norm(s) {
+      return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    }
+
+    function monthKey(dateStr) { return dateStr.slice(0, 7); }
+
+    function monthLabel(key) {
+      const [y, m] = key.split('-').map(Number);
+      return `${MONTH_NAMES_PT[m - 1]} ${y}`;
+    }
+
+    function formatDate(dateStr) {
+      const [y, m, d] = dateStr.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    function weekday(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const names = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      return names[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+    }
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function nextMonthKey(key) {
+      let [y, m] = key.split('-').map(Number);
+      m++; if (m > 12) { m = 1; y++; }
+      return `${y}-${pad(m)}`;
+    }
+
+    function allMonths() {
+      const set = new Set(state.records.map(r => monthKey(r.data)));
+      state.generatedMonths.forEach(k => set.add(k));
+      return [...set].sort();
+    }
+
+    function normalizeApto(v) {
+      v = v.trim();
+      return /^\d+$/.test(v) ? `Apto ${v}` : v;
+    }
+
+    function toast(msg) {
+      const el = document.createElement('div');
+      el.className = 'oneui-toast px-5 py-3 text-sm font-semibold';
+      el.textContent = msg;
+      $('toastContainer').appendChild(el);
+      setTimeout(() => {
+        el.style.transition = 'opacity .3s, transform .3s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(10px)';
+        setTimeout(() => el.remove(), 320);
+      }, 2400);
+    }
+
+    function showModal(id) { const m = $(id); m.classList.remove('hidden'); m.classList.add('flex'); }
+    function hideModal(id) { const m = $(id); m.classList.add('hidden'); m.classList.remove('flex'); }
+
+    // =========================================================================
+    // 4. TEMA CLARO / ESCURO
+    // =========================================================================
+    function applyTheme(dark) {
+      document.documentElement.classList.toggle('dark', dark);
+      $('sunIcon').classList.toggle('hidden', !dark);
+      $('moonIcon').classList.toggle('hidden', dark);
+      $('themeLabel').textContent = dark ? 'Modo Claro' : 'Modo Escuro';
+    }
+
+    function toggleTheme() {
+      const dark = !document.documentElement.classList.contains('dark');
+      applyTheme(dark);
+      try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch (e) {}
+    }
+
+    function initTheme() {
+      let t = null;
+      try { t = localStorage.getItem(THEME_KEY); } catch (e) {}
+      if (!t) t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      applyTheme(t === 'dark');
+    }
+
+    // =========================================================================
+    // 5. FILTRAGEM
+    // =========================================================================
+    function periodRecords() {
+      return state.view === 'all' ? state.records : state.records.filter(r => monthKey(r.data) === state.view);
+    }
+
+    function filteredRecords() {
+      const q = norm(state.search.trim());
+      return periodRecords()
+        .filter(r => state.situacao === 'Todos' || r.situacao === state.situacao)
+        .filter(r => state.status === 'Todos' || r.status === state.status)
+        .filter(r => !q || norm(r.morador).includes(q) || norm(r.apto).includes(q) || norm(formatDate(r.data)).includes(q))
+        .sort((a, b) => a.data.localeCompare(b.data) || a.id - b.id);
+    }
+
+    // =========================================================================
+    // 6. RENDERIZAÇÃO
+    // =========================================================================
+    const SITUACAO_STYLE = {
+      'Chegando': 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+      'Saindo': 'bg-orange-500/15 text-orange-700 dark:text-orange-300',
+      'Mudança de AP': 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300'
+    };
+    const STATUS_STYLE = {
+      'Concluída': 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+      'Agendada': 'bg-sky-500/15 text-sky-700 dark:text-sky-300',
+      'Pendente': 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+    };
+
+    function situacaoBadge(s) {
+      return `<span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold ${SITUACAO_STYLE[s] || ''}">${esc(s)}</span>`;
+    }
+
+    function statusButton(r) {
+      return `<button type="button" onclick="cycleStatus(${r.id})" title="Clique para alternar o status"
+        class="oneui-pill inline-flex px-2.5 py-1 text-xs font-bold ${STATUS_STYLE[r.status] || ''} hover:brightness-95">${esc(r.status)}</button>`;
+    }
+
+    const ICON_EDIT = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>';
+    const ICON_DEL = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
+
+    function actionButtons(r) {
+      return `<div class="inline-flex items-center gap-1.5">
+        <button type="button" onclick="openFormModal(${r.id})" aria-label="Editar" title="Editar"
+          class="oneui-pill p-2 bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:bg-[var(--pill-hover)] text-[#0381FE] dark:text-[#66B2FF]">${ICON_EDIT}</button>
+        <button type="button" onclick="openDeleteModal(${r.id})" aria-label="Excluir" title="Excluir"
+          class="oneui-pill p-2 bg-[var(--pill-bg)] border border-[var(--glass-border)] hover:bg-rose-500/15 text-rose-600 dark:text-rose-400">${ICON_DEL}</button>
+      </div>`;
+    }
+
+    function render() {
+      const list = filteredRecords();
+      const period = periodRecords();
+      const all = state.records;
+      const count = (arr, s) => arr.filter(r => r.situacao === s).length;
+      const viewingAll = state.view === 'all';
+
+      // Cabeçalho do período
+      $('activeMonthTitle').textContent = viewingAll ? 'Todos os Meses (2022–2026)' : monthLabel(state.view);
+      $('periodBadgeCount').textContent = `${period.length} ${period.length === 1 ? 'registro' : 'registros'}`;
+      const hidden = period.length - list.length;
+      $('periodComparisonText').textContent = hidden > 0
+        ? `Atenção: ${hidden} ${hidden === 1 ? 'registro está oculto' : 'registros estão ocultos'} pelos filtros/busca — clique em "Todos" para ver tudo`
+        : viewingAll
+        ? `Exibindo o histórico completo: ${all.length} registros`
+        : `Exibindo movimentações do mês selecionado vs. ${all.length} registros totais`;
+      $('headerSubtitle').textContent = `${all.length} movimentações registradas em ${allMonths().length} meses • ${USE_SUPABASE ? '☁️ Supabase conectado' : '💾 Modo local (Supabase não configurado)'}`;
+      $('filteredCountBadge').textContent = `${list.length} ${list.length === 1 ? 'item' : 'itens'}`;
+
+      // KPIs (período + filtros atuais) vs. geral
+      $('kpiTotalPeriod').textContent = list.length;
+      $('kpiTotalAll').textContent = `de ${all.length} geral`;
+      $('kpiChegandoPeriod').textContent = count(list, 'Chegando');
+      $('kpiChegandoAll').textContent = `(${count(all, 'Chegando')} geral)`;
+      $('kpiSaindoPeriod').textContent = count(list, 'Saindo');
+      $('kpiSaindoAll').textContent = `(${count(all, 'Saindo')} geral)`;
+      $('kpiInternaPeriod').textContent = count(list, 'Mudança de AP');
+      $('kpiInternaAll').textContent = `(${count(all, 'Mudança de AP')} geral)`;
+
+      // Navegação
+      const months = allMonths();
+      const idx = months.indexOf(state.view);
+      $('prevMonthBtn').disabled = months.length === 0 || (!viewingAll && idx <= 0);
+      $('nextMonthBtn').disabled = viewingAll || idx >= months.length - 1;
+      renderDropdown(months);
+      $('generatedMonthsTag').textContent = state.generatedMonths.length
+        ? `Meses gerados manualmente: ${state.generatedMonths.map(monthLabel).join(', ')}`
+        : '';
+
+      // Chips de filtro
+      document.querySelectorAll('.situacao-chip').forEach(b => styleChip(b, b.dataset.situacao === state.situacao));
+      document.querySelectorAll('.status-chip').forEach(b => styleChip(b, b.dataset.status === state.status));
+      $('clearSearchBtn').classList.toggle('hidden', !state.search);
+
+      // Tabela desktop
+      $('desktopTableBody').innerHTML = list.map((r, i) => `
+        <tr>
+          <td class="py-3.5 pl-6 pr-3 text-[var(--text-secondary)]">${i + 1}</td>
+          <td class="py-3.5 px-4 font-semibold">${esc(r.morador)}</td>
+          <td class="py-3.5 px-4">${esc(r.apto)}</td>
+          <td class="py-3.5 px-4">${statusButton(r)}</td>
+          <td class="py-3.5 px-4">${situacaoBadge(r.situacao)}</td>
+          <td class="py-3.5 px-4 whitespace-nowrap">${formatDate(r.data)} <span class="text-xs text-[var(--text-secondary)]">${weekday(r.data)}</span></td>
+          <td class="py-3.5 pl-4 pr-6 text-right">${actionButtons(r)}</td>
+        </tr>`).join('');
+
+      // Cards mobile
+      $('mobileCardsList').innerHTML = list.map(r => `
+        <div class="p-4 flex flex-col gap-2.5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="font-bold">${esc(r.morador)}</div>
+              <div class="text-sm text-[var(--text-secondary)]">${esc(r.apto)} • ${formatDate(r.data)} ${weekday(r.data)}</div>
+            </div>
+            ${actionButtons(r)}
+          </div>
+          <div class="flex flex-wrap gap-2">${situacaoBadge(r.situacao)}${statusButton(r)}</div>
+        </div>`).join('');
+
+      // Estado vazio
+      const empty = list.length === 0;
+      $('emptyStateContainer').classList.toggle('hidden', !empty);
+      $('desktopTableBody').closest('div').classList.toggle('hidden', empty);
+      $('desktopTableBody').closest('div').classList.toggle('md:block', !empty);
+      $('mobileCardsList').classList.toggle('hidden', empty);
+      if (empty) {
+        const filtering = state.search || state.situacao !== 'Todos' || state.status !== 'Todos';
+        $('emptyStateTitle').textContent = filtering ? 'Nenhum resultado encontrado' : 'Nenhum agendamento neste período';
+        $('emptyStateDesc').textContent = filtering
+          ? 'Nenhum registro corresponde à busca ou aos filtros aplicados.'
+          : 'Esta folha mensal está pronta para receber novos agendamentos de mudança do condomínio.';
+      }
+    }
+
+    function styleChip(btn, active) {
+      const on = ['bg-[#0381FE]', 'text-white', 'font-bold'];
+      const off = ['bg-[var(--pill-bg)]', 'border', 'border-[var(--glass-border)]', 'font-semibold'];
+      if (active) { btn.classList.add(...on); btn.classList.remove(...off); }
+      else { btn.classList.remove(...on); btn.classList.add(...off); }
+    }
+
+    function renderDropdown(months) {
+      const sel = $('monthSelectorDropdown');
+      let html = '<option value="all">Todos os meses</option>';
+      const years = [...new Set(months.map(k => k.slice(0, 4)))].sort().reverse();
+      years.forEach(y => {
+        html += `<optgroup label="${y}">`;
+        months.filter(k => k.startsWith(y)).reverse().forEach(k => {
+          const n = state.records.filter(r => monthKey(r.data) === k).length;
+          html += `<option value="${k}">${monthLabel(k)} (${n})</option>`;
+        });
+        html += '</optgroup>';
+      });
+      sel.innerHTML = html;
+      sel.value = state.view;
+    }
+
+    // =========================================================================
+    // 7. NAVEGAÇÃO ENTRE MESES
+    // =========================================================================
+    function clearFilterState() {
+      state.search = ''; state.situacao = 'Todos'; state.status = 'Todos';
+      $('searchInput').value = '';
+    }
+
+    function navigateMonth(dir) {
+      clearFilterState();
+      const months = allMonths();
+      if (!months.length) return;
+      if (state.view === 'all') {
+        if (dir < 0) state.view = months[months.length - 1];
+      } else {
+        const i = months.indexOf(state.view) + dir;
+        if (i >= 0 && i < months.length) state.view = months[i];
+      }
+      render();
+    }
+
+    function handleDropdownChange(v) { clearFilterState(); state.view = v; render(); }
+    function selectAllMonths() { clearFilterState(); state.view = 'all'; render(); }
+    function selectLatestMonth() {
+      clearFilterState();
+      const months = allMonths();
+      state.view = months.length ? months[months.length - 1] : 'all';
+      render();
+    }
+
+    async function generateNextMonth() {
+      clearFilterState();
+      const months = allMonths();
+      const base = months.length ? months[months.length - 1] : `${new Date().getFullYear()}-${pad(new Date().getMonth() + 1)}`;
+      const next = months.length ? nextMonthKey(base) : base;
+      try {
+        await db.addMonth(next);
+        state.generatedMonths.push(next);
+        state.view = next;
+        render();
+        toast(`Folha de ${monthLabel(next)} criada`);
+      } catch (e) { dbError(e); }
+    }
+
+    // =========================================================================
+    // 8. BUSCA E FILTROS
+    // =========================================================================
+    function handleSearch(v) { state.search = v; render(); }
+    function clearSearch() { state.search = ''; $('searchInput').value = ''; render(); $('searchInput').focus(); }
+    function setSituacaoFilter(v) { state.situacao = v; render(); }
+    function setStatusFilter(v) { state.status = v; render(); }
+    function resetFiltersOnly() {
+      state.search = ''; state.situacao = 'Todos'; state.status = 'Todos';
+      $('searchInput').value = '';
+      render();
+    }
+
+    // =========================================================================
+    // 9. CRUD: ADICIONAR / EDITAR / EXCLUIR / ALTERNAR STATUS
+    // =========================================================================
+    function openFormModal(id = null, fromEmptyState = false) {
+      const form = $('agendamentoForm');
+      form.reset();
+      $('recordId').value = '';
+      if (id !== null && id !== undefined) {
+        const r = state.records.find(x => x.id === id);
+        if (!r) return;
+        $('formModalTitle').textContent = 'Editar Agendamento';
+        $('recordId').value = r.id;
+        $('moradorInput').value = r.morador;
+        $('aptoInput').value = r.apto;
+        $('dataInput').value = r.data;
+        $('situacaoInput').value = r.situacao;
+        $('statusInput').value = r.status;
+      } else {
+        $('formModalTitle').textContent = 'Novo Agendamento';
+        const now = new Date();
+        const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+        $('dataInput').value = (state.view === 'all' || monthKey(today) === state.view) ? today : `${state.view}-01`;
+        $('statusInput').value = 'Agendada';
+        $('situacaoInput').value = 'Chegando';
+        if (state.situacao !== 'Todos') $('situacaoInput').value = state.situacao;
+      }
+      showModal('formModal');
+      setTimeout(() => $('moradorInput').focus(), 50);
+    }
+
+    function closeFormModal() { hideModal('formModal'); }
+
+    async function saveAgendamento(e) {
+      e.preventDefault();
+      if (state.busy) return;
+      const morador = $('moradorInput').value.trim();
+      const apto = normalizeApto($('aptoInput').value);
+      const data = $('dataInput').value;
+      if (!morador || !apto || !data) return;
+      const payload = { morador, apto, data, situacao: $('situacaoInput').value, status: $('statusInput').value };
+      const id = $('recordId').value;
+      state.busy = true;
+      try {
+        if (id) {
+          await db.update(Number(id), payload);
+          const r = state.records.find(x => x.id === Number(id));
+          if (r) Object.assign(r, payload);
+          toast('Agendamento atualizado');
+        } else {
+          const row = await db.insert(payload);
+          state.records.push(row);
+          toast('Agendamento adicionado');
+        }
+        closeFormModal();
+        if (state.view !== 'all' && monthKey(data) !== state.view) state.view = monthKey(data);
+        render();
+      } catch (err) { dbError(err); }
+      finally { state.busy = false; }
+    }
+
+    async function cycleStatus(id) {
+      const r = state.records.find(x => x.id === id);
+      if (!r || state.busy) return;
+      const order = ['Agendada', 'Concluída', 'Pendente'];
+      const novo = order[(order.indexOf(r.status) + 1) % order.length];
+      state.busy = true;
+      try {
+        await db.update(id, { status: novo });
+        r.status = novo;
+        render();
+        toast(`Status alterado para ${novo}`);
+      } catch (err) { dbError(err); }
+      finally { state.busy = false; }
+    }
+
+    function openDeleteModal(id) {
+      const r = state.records.find(x => x.id === id);
+      if (!r) return;
+      state.deleteId = id;
+      $('deleteModalMessage').textContent =
+        `Tem certeza que deseja remover "${r.morador} — ${r.apto}" (${formatDate(r.data)}) da planilha? Esta ação não pode ser desfeita.`;
+      showModal('deleteModal');
+    }
+
+    function closeDeleteModal() { state.deleteId = null; hideModal('deleteModal'); }
+
+    async function confirmDelete() {
+      if (state.deleteId === null || state.busy) return;
+      const id = state.deleteId;
+      state.busy = true;
+      try {
+        await db.remove(id);
+        state.records = state.records.filter(r => r.id !== id);
+        closeDeleteModal();
+        render();
+        toast('Agendamento excluído');
+      } catch (err) { dbError(err); }
+      finally { state.busy = false; }
+    }
+
+    // =========================================================================
+    // 10. RESTAURAR ORIGINAL
+    // =========================================================================
+    function openResetModal() { showModal('resetModal'); }
+    function closeResetModal() { hideModal('resetModal'); }
+    async function confirmResetOriginalData() {
+      if (state.busy) return;
+      state.busy = true;
+      try {
+        state.records = await db.reset();
+        state.generatedMonths = [];
+        clearFilterState();
+        closeResetModal();
+        selectLatestMonth();
+        toast(`Planilha original restaurada (${state.records.length} registros)`);
+      } catch (err) { dbError(err); }
+      finally { state.busy = false; }
+    }
+
+    // =========================================================================
+    // 11. EXPORTAR CSV (abre direto no Excel — separador ; e acentos OK)
+    // =========================================================================
+    function exportToCSV() {
+      const list = filteredRecords();
+      if (!list.length) { toast('Nada para exportar neste filtro'); return; }
+      const q = (v) => `"${String(v).replace(/"/g, '""')}"`;
+      const lines = [['Morador ou Inquilino', 'Apartamento', 'Status', 'Situação', 'Data'].map(q).join(';')];
+      list.forEach(r => lines.push([r.morador, r.apto, r.status, r.situacao, formatDate(r.data)].map(q).join(';')));
+      const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `agendamento-mudanca-${state.view === 'all' ? 'completo' : state.view}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast(`${list.length} registros exportados`);
+    }
+
+    // Fechar modais com ESC ou clique no fundo
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { closeFormModal(); closeDeleteModal(); closeResetModal(); }
+    });
+    ['formModal', 'deleteModal', 'resetModal'].forEach(id => {
+      $(id).addEventListener('mousedown', (e) => {
+        if (e.target.id === id) { hideModal(id); if (id === 'deleteModal') state.deleteId = null; }
+      });
+    });
+
+    // =========================================================================
+    // 12. INICIALIZAÇÃO
+    // =========================================================================
+    async function init() {
+      initTheme();
+      $('headerSubtitle').textContent = USE_SUPABASE ? 'Carregando dados do Supabase...' : 'Carregando...';
+      try {
+        const { records, months } = await db.load();
+        state.records = records;
+        state.generatedMonths = months;
+      } catch (e) {
+        dbError(e);
+        $('headerSubtitle').textContent = '⚠️ Não foi possível carregar os dados do Supabase (veja o console)';
+      }
+      selectLatestMonth();
+    }
+    init();
+  </script>
+</body>
+</html>
